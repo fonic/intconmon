@@ -1,0 +1,52 @@
+# /etc/systemd/system/intconmon.service
+
+# -------------------------------------------------------------------------
+#                                                                         -
+#  Internet Connection Monitor (intconmon)                                -
+#                                                                         -
+#  Created by Fonic <https://github.com/fonic>                            -
+#  Date: 10/17/22 - 08/09/23                                              -
+#                                                                         -
+#  For detailed information regarding Systemd units, see:                 -
+#  man systemd.exec, man systemd.unit, man systemd.service                -
+#                                                                         -
+#  Run the following command after committing changes to this file:       -
+#  systemctl daemon-reload                                                -
+#                                                                         -
+# -------------------------------------------------------------------------
+
+# NOTE:
+# - Replace all '%{...}' tokens with appropriate values, then copy or move
+#   this file to '/etc/systemd/system' and run the following command:
+#   systemctl daemon-reload
+# - If hostnames are being used instead of IP addresses in 'intconmon.conf'
+#   for configuration items 'HOST_IPVx_PRIMARY', 'HOST_IPVx_SECONDARY',
+#   'DNS_IPVx_PRIMARY' or 'DNS_IPVx_PRIMARY' (which is NOT recommended),
+#   enable the 'After=...' line containing 'nss-lookup.target' and disable
+#   the other one to delay service startup until name services are avail-
+#   able
+
+[Unit]
+Description=Internet Connection Monitor (intconmon)
+Wants=network-online.target
+#After=local-fs.target network-online.target nss-lookup.target
+After=local-fs.target network-online.target
+
+[Service]
+User=%{USER}
+Group=%{GROUP}
+
+WorkingDirectory=%{HOME}
+ExecStart=%{HOME}/intconmon.sh
+StandardOutput=file:%{HOME}/intconmon.stdout.log
+StandardError=file:%{HOME}/intconmon.stderr.log
+
+StartLimitInterval=60
+StartLimitBurst=10
+Restart=always
+RestartSec=10
+
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
