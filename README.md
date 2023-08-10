@@ -17,7 +17,63 @@ _Bash (>=v4.0)_, _ping_, _dig_
 Refer to the [releases](https://github.com/fonic/intconmon/releases) section for downloads links. There is no installation required. Simply extract the downloaded archive to a folder of your choice. Optionally, _intconmon_ may be set up as a [system service](#set-up-as-system-service).
 
 ## Configuration
-Open `intconmon.conf` in your favorite text editor and adjust the settings to your liking. Refer to embedded comments for details. Note that before changing any settings, it is recommended to run the script with *default settings* first to make sure it works as expected.
+Open `intconmon.conf` in your favorite text editor and adjust the settings to your liking. Refer to embedded comments for details. Note that before changing any settings, it is recommended to run the script with *default settings* first to make sure it works as expected. Refer to [this section](#configuration-options--defaults) for a listing of all configuration options and current defaults.
+
+## Usage
+There are no command line options. Simply run the script from within a console:
+```
+$ cd intconmon-vX.Y
+$ ./intconmon.sh
+```
+
+Alternatively, set up _intconmon_ to run as a [system service](#set-up-as-system-service) (recommended for long-term use).
+
+## Set up as system service
+
+To set up _intconmon_ as an isolated system service, run the following commands in a console (Linux with systemd only):
+
+```
+$ sudo bash
+# useradd -d /var/lib/intconmon -s /sbin/nologin -c "User for Internet Connection Monitor" intconmon
+# mkdir /var/lib/intconmon
+# chown intconmon:intconmon /var/lib/intconmon
+# chmod 700 /var/lib/intconmon
+# cd intconmon-vX.Y
+# cp intconmon.sh intconmon.conf README.md /var/lib/intconmon
+# chown intconmon:intconmon /var/lib/intconmon/*
+# cp intconmon.service /etc/systemd/system
+# sed -i -e 's|%{USER}|intconmon|g' -e 's|%{GROUP}|intconmon|g' -e 's|%{HOME}|/var/lib/intconmon|g' /etc/systemd/system/intconmon.service
+# systemctl daemon-reload
+# systemctl enable intconmon.service
+# systemctl start intconmon.service
+# exit
+```
+
+**NOTE:**<br/>
+This creates user/group `intconmon` with home directory `/var/lib/intconmon`.
+
+<br/>To fully clean up an existing system service setup, run the following commands:
+
+```
+$ sudo bash
+# systemctl stop intconmon.service
+# systemctl disable intconmon.service
+# rm /etc/systemd/system/intconmon.service
+# systemctl daemon-reload
+# userdel -r intconmon
+# exit
+```
+
+**NOTE:**<br/>
+You might want to back up log file `intconmon.log` first to preserve its contents.
+
+## Output & Logging
+
+Output is sent to both console and log file `intconmon.log`:
+
+![Screenshot](https://raw.githubusercontent.com/fonic/intconmon/main/SCREENSHOT.png)
+
+## Configuration Options & Defaults
 
 Configuration options and current defaults:
 ```sh
@@ -144,7 +200,7 @@ DIG_QOPTS=("+tries=1" "+timeout=3" "+short")
 # User-defined commands to run for events 'start', 'stop', 'reset', 'online4',
 # 'offline4', 'ipaddr4', 'online6', 'offline6' and 'ipaddr6'
 #
-# Syntax: USRCMD_XXX_YYY=("<path-to-executable>" "<arg-1>" "<arg-2>" ...)
+# Syntax: USRCMD_EVENT_IPVER=("<path-to-executable>" "<arg-1>" "<arg-2>" ...)
 #
 # Tokens: %{ETYPE} -> replaced with type of event (2nd part of log file lines
 #                     converted to lowercase, e.g. '[ONLINE4 ]' -> 'online4')
@@ -208,61 +264,6 @@ DEBUG_DIG="false"
 DEBUG_USRCMD="false"
 ```
 
-## Usage
-There are no command line options. Simply run the script from within a console:
-```
-$ cd intconmon-vX.Y
-$ ./intconmon.sh
-```
-
-Alternatively, set up _intconmon_ to run as a [system service](#set-up-as-system-service) (recommended for long-term use).
-
-
-## Output & Logging
-
-Output is sent to both console and log file `intconmon.log`:
-
-![Screenshot](https://github.com/fonic/intconmon/raw/main/SCREENSHOT.png)
-
-
-## Set up as system service
-
-To set up _intconmon_ as an isolated system service, run the following commands in a console (Linux with systemd only):
-
-```
-$ sudo bash
-# useradd -d /var/lib/intconmon -s /sbin/nologin -c "User for Internet Connection Monitor" intconmon
-# mkdir /var/lib/intconmon
-# chmod 700 /var/lib/intconmon
-# cd intconmon-vX.Y
-# cp intconmon.sh intconmon.conf README.md /var/lib/intconmon
-# chown intconmon:intconmon /var/lib/intconmon/*
-# cp intconmon.service /etc/systemd/system
-# sed -i -e 's|%{USER}|intconmon|g' -e 's|%{GROUP}|intconmon|g' -e 's|%{HOME}|/var/lib/intconmon|g' /etc/systemd/system/intconmon.service
-# systemctl daemon-reload
-# systemctl enable intconmon.service
-# systemctl start intconmon.service
-# exit
-```
-
-**NOTE:**<br/>
-This creates user/group `intconmon` with home directory `/var/lib/intconmon`.
-
-<br/>To fully clean up an existing system service setup, run the following commands:
-
-```
-$ sudo bash
-# systemctl stop intconmon.service
-# systemctl disable intconmon.service
-# rm /etc/systemd/system/intconmon.service
-# systemctl daemon-reload
-# userdel -r intconmon
-# exit
-```
-
-**NOTE:**<br/>
-You might want to back up log file `intconmon.log` first to preserve its contents.
-
 ##
 
-_Last updated: 08/09/23_
+_Last updated: 08/10/23_
